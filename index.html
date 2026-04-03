@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Sorting Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+<style>
+:root {
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #0f172a;
+  --border: #e2e8f0;
+  --accent: #2563eb;
+  --green: #16a34a;
+  --red: #dc2626;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.dashboard {
+  padding: 15px;
+  display: grid;
+  gap: 15px;
+}
+
+/* ---------- CARDS ---------- */
+.card {
+  background: var(--card);
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+/* ---------- GRID ---------- */
+.grid-4 {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.main {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+
+/* ---------- STATUS ---------- */
+.value {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* ---------- SENSOR ---------- */
+.sensor {
+  display: flex;
+  justify-content: space-between;
+  margin: 6px 0;
+}
+
+/* ---------- SERVO ---------- */
+.servo {
+  margin-bottom: 10px;
+}
+
+/* ---------- LOG ---------- */
+.log {
+  max-height: 200px;
+  overflow-y: auto;
+  font-size: 13px;
+}
+
+/* ---------- BUTTON ---------- */
+button {
+  padding: 8px 12px;
+  margin: 5px 5px 0 0;
+  background: var(--accent);
+  border: none;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button.stop {
+  background: var(--red);
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media(max-width: 768px){
+  .main {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="dashboard">
+
+  <!-- 🔹 STATUS -->
+  <div class="grid-4">
+    <div class="card"><div>Status</div><div class="value" id="status">RUNNING</div></div>
+    <div class="card"><div>Total Items</div><div class="value" id="items">120</div></div>
+    <div class="card"><div>Rejected</div><div class="value" id="reject">5</div></div>
+    <div class="card"><div>Accuracy</div><div class="value" id="accuracy">96%</div></div>
+  </div>
+
+  <!-- 🔹 MAIN -->
+  <div class="main">
+
+    <!-- 📷 CAMERA -->
+    <div class="card">
+      <h3>Camera Feed</h3>
+      <img src="https://via.placeholder.com/400x250" width="100%">
+    </div>
+
+    <!-- 📡 SENSOR -->
+    <div class="card">
+      <h3>Sensors</h3>
+      <div class="sensor">Color: <span id="color">-</span></div>
+      <div class="sensor">Size: <span id="size">-</span></div>
+    </div>
+
+    <!-- 🤖 SERVO -->
+    <div class="card">
+      <h3>Servo Motors</h3>
+      <div id="servoContainer"></div>
+    </div>
+
+    <!-- 📊 CHART -->
+    <div class="card">
+      <h3>Items Processed</h3>
+      <div id="chart"></div>
+    </div>
+
+  </div>
+
+  <!-- 🔹 LOG + CONTROL -->
+  <div class="main">
+
+    <div class="card">
+      <h3>Activity Log</h3>
+      <div class="log" id="log"></div>
+    </div>
+
+    <div class="card">
+      <h3>Control Panel</h3>
+      <button onclick="start()">Start</button>
+      <button class="stop" onclick="stop()">Stop</button>
+      <button onclick="reset()">Reset</button>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+// ---------- SERVO ----------
+const servoContainer = document.getElementById("servoContainer");
+for(let i=1;i<=5;i++){
+  servoContainer.innerHTML += `
+    <div class="servo">
+      Servo ${i}: 
+      <input type="range" min="0" max="180" value="90"
+      oninput="updateServo(${i}, this.value)">
+    </div>
+  `;
+}
+
+// ---------- LOG ----------
+function addLog(msg){
+  const log = document.getElementById("log");
+  log.innerHTML = `<div>${new Date().toLocaleTimeString()} - ${msg}</div>` + log.innerHTML;
+}
+
+// ---------- CONTROL ----------
+function start(){
+  document.getElementById("status").innerText = "RUNNING";
+  addLog("System Started");
+}
+function stop(){
+  document.getElementById("status").innerText = "STOPPED";
+  addLog("System Stopped");
+}
+function reset(){
+  document.getElementById("items").innerText = 0;
+  document.getElementById("reject").innerText = 0;
+  addLog("System Reset");
+}
+
+// ---------- SERVO ----------
+function updateServo(id, val){
+  addLog(`Servo ${id} → ${val}°`);
+}
+
+// ---------- CHART ----------
+var options = {
+  chart: { type: 'line', height: 200 },
+  series: [{ name: 'Items', data: [10,20,30,40,50] }],
+  xaxis: { categories: ['1','2','3','4','5'] }
+};
+var chart = new ApexCharts(document.querySelector("#chart"), options);
+chart.render();
+
+// ---------- SIMULATION ----------
+setInterval(() => {
+
+  const colors = ["Red","Blue","Green"];
+  const sizes = ["Small","Medium","Large"];
+
+  let color = colors[Math.floor(Math.random()*3)];
+  let weight = Math.floor(Math.random()*200);
+  let size = sizes[Math.floor(Math.random()*3)];
+
+  document.getElementById("color").innerText = color;
+  document.getElementById("size").innerText = size;
+
+  let items = document.getElementById("items");
+  items.innerText = parseInt(items.innerText) + 1;
+
+  if(Math.random() > 0.7){
+    document.getElementById("reject").innerText =
+      parseInt(document.getElementById("reject").innerText) + 1;
+  }
+
+  addLog("Item Sorted");
+
+}, 3000);
+
+</script>
+
+</body>
+</html>
